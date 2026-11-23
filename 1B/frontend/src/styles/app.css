@@ -1,0 +1,275 @@
+:root {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: #172033;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+.button:focus-within {
+  outline: 3px solid #6d8dff;
+  outline-offset: 3px;
+}
+
+.app-shell {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.app-header h1,
+.panel-heading h2 {
+  margin: 0;
+  letter-spacing: -0.035em;
+}
+
+.app-header h1 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.header-description {
+  margin: 8px 0 0;
+  color: #59657a;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #65728a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.upload-control {
+  min-width: 150px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button-primary {
+  color: #fff;
+  background: #3158d5;
+}
+
+.button-secondary {
+  color: #263650;
+  border-color: #d3dae7;
+  background: #fff;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.status-message {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  color: #3a4a65;
+}
+
+.status-error,
+.error-text {
+  color: #9c2727;
+}
+
+.status-error {
+  display: grid;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.workspace-panel {
+  min-width: 0;
+  min-height: 560px;
+  border: 1px solid #e1e6ef;
+  border-radius: 16px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgb(23 32 51 / 5%);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-heading h2 {
+  overflow-wrap: anywhere;
+  font-size: 1.15rem;
+}
+
+.ready-badge {
+  flex: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #17613c;
+  background: #e7f6ed;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.pdf-empty,
+.empty-chat {
+  display: grid;
+  min-height: 460px;
+  place-items: center;
+  border: 1px dashed #d4dbe8;
+  border-radius: 12px;
+  padding: 24px;
+  color: #68758a;
+  text-align: center;
+  background: #fafbfe;
+}
+
+.pdf-viewer {
+  overflow: auto;
+}
+
+.pdf-page {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  min-height: 380px;
+  padding: 12px;
+  background: #edf0f6;
+}
+
+.pdf-page canvas {
+  max-width: 100%;
+  height: auto !important;
+  box-shadow: 0 3px 14px rgb(20 30 50 / 14%);
+}
+
+.pdf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 16px;
+  color: #45536b;
+  font-size: 0.9rem;
+}
+
+.pdf-controls .button {
+  min-height: 38px;
+  padding-inline: 12px;
+}
+
+.chat-placeholder {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-placeholder .empty-chat {
+  flex: 1;
+}
+
+@media (max-width: 800px) {
+  .app-shell {
+    padding: 24px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-panel {
+    min-height: 420px;
+  }
+
+  .pdf-empty,
+  .empty-chat {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .upload-control,
+  .upload-control .button {
+    width: 100%;
+  }
+
+  .workspace-panel {
+    min-height: 360px;
+    padding: 16px;
+  }
+
+  .pdf-page {
+    padding: 6px;
+  }
+}

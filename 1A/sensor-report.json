@@ -1,0 +1,23 @@
+{
+  "targetDir": "D:\\AI_SDLC_Assignment\\1A",
+  "checkedAt": "2026-11-23T14:31:12.674Z",
+  "staticPassed": false,
+  "dynamicPassed": false,
+  "passed": false,
+  "findings": [
+    {
+      "code": "MISSING_SERVICE",
+      "message": "pdf.service.js does not exist."
+    },
+    {
+      "code": "MISSING_TEST",
+      "message": "pdf.service.test.js does not exist."
+    }
+  ],
+  "testExecution": {
+    "passed": false,
+    "exitCode": null,
+    "stdout": "",
+    "stderr": "Dynamic checks skipped until static findings are resolved."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "mode": "pdf-summarizer-simulation",
+  "feature": "summary-evaluation",
+  "maxAttempts": 2,
+  "attempts": [
+    {
+      "attempt": 1,
+      "passed": false,
+      "findings": [
+        {
+          "code": "MISSING_SERVICE",
+          "message": "pdf.service.js does not exist."
+        },
+        {
+          "code": "MISSING_TEST",
+          "message": "pdf.service.test.js does not exist."
+        }
+      ],
+      "dynamicPassed": false
+    },
+    {
+      "attempt": 2,
+      "passed": false,
+      "findings": [
+        {
+          "code": "MISSING_SERVICE",
+          "message": "pdf.service.js does not exist."
+        },
+        {
+          "code": "MISSING_TEST",
+          "message": "pdf.service.test.js does not exist."
+        }
+      ],
+      "dynamicPassed": false
+    }
+  ],
+  "finalStatus": "FAILED"
+}
