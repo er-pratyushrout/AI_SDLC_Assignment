@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+playwright-report/
+test-results/
+package-lock.json
+client/package-lock.json
+server/package-lock.json
+.github/skills/
+.specify/
+specs/

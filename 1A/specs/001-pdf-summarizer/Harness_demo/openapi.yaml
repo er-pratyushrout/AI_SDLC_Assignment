@@ -1,0 +1,19 @@
+openapi: 3.0.0
+
+paths:
+  /api/documents/upload:
+    post:
+      summary: Upload PDF
+
+      responses:
+        "201":
+          description: PDF uploaded
+
+        "413":
+          description: File too large
+
+        "415":
+          description: Invalid file
+
+        "422":
+          description: Corrupted PDF

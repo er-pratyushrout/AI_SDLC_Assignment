@@ -1,0 +1,353 @@
+openapi: 3.1.0
+info:
+  title: PDF Summarizer API
+  version: 1.0.0
+  license:
+    name: ISC
+    url: https://opensource.org/licenses/ISC
+  description: |
+    Same-origin REST API for session-scoped PDF document metadata and summaries.
+    The anonymous session cookie scopes access; it does not represent an account.
+servers:
+  - url: /
+security:
+  - SessionCookie: []
+paths:
+  /api/documents/upload:
+    post:
+      operationId: uploadDocument
+      summary: Upload and parse a PDF
+      description: |
+        Accepts one PDF up to and including 20 MB. Validates and extracts text before
+        creating a session-scoped document. The original upload is not retained after parsing.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Readable, text-based PDF, no larger than 20 MB.
+      responses:
+        "201":
+          description: PDF parsed and document created.
+          headers:
+            Set-Cookie:
+              description: Opaque anonymous session cookie, when a session is first created.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMedia"
+        "422":
+          $ref: "#/components/responses/UnprocessablePdf"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents:
+    get:
+      operationId: listDocuments
+      summary: List documents in the current session
+      responses:
+        "200":
+          description: Session-scoped documents, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [documents]
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}:
+    parameters:
+      - $ref: "#/components/parameters/DocumentId"
+    get:
+      operationId: getDocument
+      summary: Get document information
+      responses:
+        "200":
+          description: Document metadata and current status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteDocument
+      summary: Delete one document and related session content
+      responses:
+        "204":
+          description: Document, summaries, and extracted text were deleted.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}/summarize:
+    parameters:
+      - $ref: "#/components/parameters/DocumentId"
+    post:
+      operationId: summarizeDocument
+      summary: Start summary generation or regeneration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [summaryType]
+              properties:
+                summaryType:
+                  $ref: "#/components/schemas/SummaryType"
+      responses:
+        "202":
+          description: Summary generation has started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: A summary generation is already in progress.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: The document is not ready for summarization.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: The AI summarization provider is not configured for this application.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/documents/{id}/summary:
+    parameters:
+      - $ref: "#/components/parameters/DocumentId"
+    get:
+      operationId: getSummary
+      summary: Get generation status and the latest successful summary
+      responses:
+        "200":
+          description: Current generation status and last successful result, if present.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryStatus"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/session/end:
+    post:
+      operationId: endSession
+      summary: End the anonymous session and delete its content
+      description: |
+        Performs explicit deletion of session documents, summaries, and extracted text.
+        The client may send this request on session end; the server also runs an expiry
+        cleanup worker for clients that terminate without a successful request.
+      responses:
+        "204":
+          description: Session content was deleted and the session cookie was cleared.
+          headers:
+            Set-Cookie:
+              description: Clears the session cookie.
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: pdf_summarizer_session
+      description: Opaque anonymous session identifier; not an account or authentication credential.
+  parameters:
+    DocumentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^[0-9a-fA-F]{24}$"
+  schemas:
+    SummaryType:
+      type: string
+      enum: [brief, standard, detailed]
+    DocumentStatus:
+      type: string
+      enum: [ready, failed]
+    GenerationStatus:
+      type: string
+      enum: [idle, processing, completed, failed]
+    Document:
+      type: object
+      required: [id, fileName, fileSizeBytes, uploadedAt, processingStatus, generationStatus]
+      properties:
+        id:
+          type: string
+        fileName:
+          type: string
+        fileSizeBytes:
+          type: integer
+          minimum: 1
+          maximum: 20000000
+        pageCount:
+          type: [integer, "null"]
+          minimum: 1
+        uploadedAt:
+          type: string
+          format: date-time
+        processingStatus:
+          $ref: "#/components/schemas/DocumentStatus"
+        generationStatus:
+          $ref: "#/components/schemas/GenerationStatus"
+        lastErrorCode:
+          type: [string, "null"]
+    Summary:
+      type: object
+      required: [id, summaryType, content, generatedAt]
+      properties:
+        id:
+          type: string
+        summaryType:
+          $ref: "#/components/schemas/SummaryType"
+        content:
+          type: object
+          required: [keyPoints, findings, conclusions]
+          properties:
+            keyPoints:
+              type: array
+              items:
+                type: string
+            findings:
+              type: array
+              items:
+                type: string
+            conclusions:
+              type: array
+              items:
+                type: string
+        generatedAt:
+          type: string
+          format: date-time
+    SummaryStatus:
+      type: object
+      required: [documentId, generationStatus, currentSummary]
+      properties:
+        documentId:
+          type: string
+        generationStatus:
+          $ref: "#/components/schemas/GenerationStatus"
+        requestedSummaryType:
+          oneOf:
+            - $ref: "#/components/schemas/SummaryType"
+            - type: "null"
+        lastErrorCode:
+          type: [string, "null"]
+        currentSummary:
+          oneOf:
+            - $ref: "#/components/schemas/Summary"
+            - type: "null"
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+  responses:
+    BadRequest:
+      description: Invalid or missing request data.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    TooLarge:
+      description: The PDF exceeds the 20 MB maximum.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnsupportedMedia:
+      description: The upload is not a supported PDF.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnprocessablePdf:
+      description: The PDF is unreadable, encrypted, empty, or has no extractable text.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: The document does not exist in the current session.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unavailable:
+      description: The database is unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Unexpected error; details are sanitized.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
